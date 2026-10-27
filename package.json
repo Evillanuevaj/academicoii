@@ -1,0 +1,14 @@
+{
+  "name": "validacion-certificados-ferreyros",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sitio estático de validación de certificados Ferreyros con QR firmado (ECDSA P-256).",
+  "scripts": {
+    "claves": "node tools/emitir.js claves",
+    "qr": "node tools/emitir.js qr",
+    "start": "node tools/servidor.js"
+  },
+  "devDependencies": {
+    "qrcode": "^1.5.4"
+  }
+}

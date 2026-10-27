@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Validación de certificados | Ferreyros</title>
+  <meta name="description" content="Verificación de autenticidad de certificados emitidos por Ferreyros." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <link rel="icon" href="https://www.ferreyros.com.pe/wp-content/themes/ferreyros/images/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap topbar__inner">
+      <span>Verificación oficial de certificados</span>
+      <a href="https://www.ferreyros.com.pe/" rel="noopener noreferrer">ferreyros.com.pe</a>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <a class="brand" href="https://www.ferreyros.com.pe/" rel="noopener noreferrer" aria-label="Ferreyros, una empresa Ferreycorp">
+        <img src="assets/img/logo.png" alt="Ferreyros CAT - Una empresa Ferreycorp" width="184" height="59" />
+      </a>
+      <nav class="nav" aria-label="Secciones Ferreyros">
+        <a href="https://www.ferreyros.com.pe/equipos/" rel="noopener noreferrer">Equipos</a>
+        <a href="https://www.ferreyros.com.pe/servicios/" rel="noopener noreferrer">Servicios</a>
+        <a href="https://www.ferreyros.com.pe/repuestos/" rel="noopener noreferrer">Repuestos</a>
+        <a href="https://www.ferreyros.com.pe/tecnologia/" rel="noopener noreferrer">Tecnología</a>
+        <a href="https://www.ferreyros.com.pe/nosotros/" rel="noopener noreferrer">Nosotros</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-label="Validación de certificado">
+      <div class="wrap hero__grid">
+        <div class="carousel" id="carousel" aria-roledescription="carrusel" aria-label="Ferreyros">
+          <div class="carousel__track">
+            <figure class="slide is-active" aria-roledescription="diapositiva" aria-label="1 de 4">
+              <img src="assets/img/slide-excavadora.jpg" alt="Excavadora Cat operando en mina a tajo abierto" width="760" height="472" />
+              <figcaption>
+                <span class="slide__tag">Equipos</span>
+                <strong>Maquinaria Cat para cada operación</strong>
+                <span>Más de 100 años acompañando el desarrollo del Perú.</span>
+              </figcaption>
+            </figure>
+            <figure class="slide" aria-roledescription="diapositiva" aria-label="2 de 4">
+              <img src="assets/img/slide-motor.jpg" alt="Motor Cat" width="760" height="472" loading="lazy" />
+              <figcaption>
+                <span class="slide__tag">Energía</span>
+                <strong>Motores y grupos electrógenos</strong>
+                <span>Suministro confiable con estándares Cat.</span>
+              </figcaption>
+            </figure>
+            <figure class="slide" aria-roledescription="diapositiva" aria-label="3 de 4">
+              <img src="assets/img/slide-repuestos.jpg" alt="Repuestos Cat llegando a todo el país" width="760" height="472" loading="lazy" />
+              <figcaption>
+                <span class="slide__tag">Servicios</span>
+                <strong>Soporte en todo el país</strong>
+                <span>Repuestos y servicio técnico donde está tu operación.</span>
+              </figcaption>
+            </figure>
+            <figure class="slide" aria-roledescription="diapositiva" aria-label="4 de 4">
+              <img src="assets/img/slide-tecnologia.jpg" alt="Aplicación Cat Central con equipos Cat" width="760" height="472" loading="lazy" />
+              <figcaption>
+                <span class="slide__tag">Tecnología</span>
+                <strong>Soluciones digitales Cat</strong>
+                <span>Información de tu flota al alcance de la mano.</span>
+              </figcaption>
+            </figure>
+          </div>
+          <button class="carousel__nav carousel__nav--prev" type="button" aria-label="Anterior">&#8249;</button>
+          <button class="carousel__nav carousel__nav--next" type="button" aria-label="Siguiente">&#8250;</button>
+          <div class="carousel__dots" role="tablist" aria-label="Seleccionar diapositiva"></div>
+        </div>
+
+        <div class="panel">
+          <section class="card card--loading" id="loading" aria-live="polite">
+            <span class="spinner" aria-hidden="true"></span>
+            <p>Verificando firma digital…</p>
+          </section>
+
+          <section class="card card--gate" id="gate" hidden aria-live="polite">
+            <span class="badge badge--locked">Acceso restringido</span>
+            <h1 id="gate-title">Escanee el código QR del certificado</h1>
+            <p id="gate-text">Esta verificación solo se abre desde el código QR impreso en el certificado físico.</p>
+          </section>
+
+          <article class="card" id="result" hidden aria-live="polite">
+            <header class="card__status">
+              <span class="badge">&#10003; Certificado válido</span>
+              <p>Ferreyros da conformidad de que este certificado es auténtico.</p>
+            </header>
+            <p class="card__kicker" id="cert-type"></p>
+            <h1 id="cert-title"></h1>
+            <p class="card__code">Código <strong id="cert-code"></strong></p>
+            <dl class="facts" id="facts"></dl>
+            <footer class="card__seal">
+              <img src="assets/seal.svg" alt="" width="52" height="62" />
+              <div>
+                <strong>Firma digital verificada</strong>
+                <span>Emitido por Ferreyros S.A.</span>
+              </div>
+            </footer>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="steps" aria-label="Cómo verificar">
+      <div class="wrap steps__grid">
+        <div class="step">
+          <span class="step__num">1</span>
+          <div>
+            <strong>Escanee el QR</strong>
+            <p>Use la cámara de su celular sobre el código impreso en el certificado.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">2</span>
+          <div>
+            <strong>Compare los datos</strong>
+            <p>Los datos en pantalla deben coincidir con los del documento físico.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">3</span>
+          <div>
+            <strong>Reporte inconsistencias</strong>
+            <p>Si algo no coincide, comuníquese con Ferreyros antes de aceptar el documento.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap site-footer__inner">
+      <img src="assets/img/logo.png" alt="Ferreyros" width="138" height="44" />
+      <p>© <span id="year"></span> Ferreyros S.A. Una empresa Ferreycorp. Sitio de verificación de certificados.</p>
+    </div>
+  </footer>
+
+  <script src="js/public-key.js"></script>
+  <script src="js/carousel.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>

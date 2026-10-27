@@ -1,0 +1,9 @@
+# Clave privada de firma: NUNCA subir
+.claves/
+*.pem
+
+# Datos reales de certificados y salidas generadas (contienen datos personales)
+datos/certificados.json
+salida/
+
+node_modules/

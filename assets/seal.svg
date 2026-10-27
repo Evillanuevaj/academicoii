@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 86" role="img" aria-label="Sello de certificado válido">
+  <path d="M36 2l28 8v28c0 20-12 34-28 46C20 72 8 58 8 38V10L36 2z" fill="#111111"/>
+  <path d="M36 8l22 6.2V38c0 16.4-9.6 28.2-22 38.2C23.6 66.2 14 54.4 14 38V14.2L36 8z" fill="#ffcd11"/>
+  <path d="M24 40.5l8 8 16.5-17" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
