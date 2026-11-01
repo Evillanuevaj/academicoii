@@ -1,8 +1,9 @@
-# Clave privada de firma: NUNCA subir
+﻿# Secreto para derivar códigos: NUNCA subir
 .claves/
 *.pem
+*.key
 
-# Datos reales de certificados y salidas generadas (contienen datos personales)
+# Datos reales y salidas generadas (contienen datos personales)
 datos/certificados.json
 salida/
 

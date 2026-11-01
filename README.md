@@ -1,96 +1,103 @@
 # Validación de certificados Ferreyros
 
-Sitio estático (HTML/CSS/JS) para validar la autenticidad de certificados Ferreyros mediante un **código QR firmado digitalmente**.
+Sitio estático (HTML/CSS/JS) para validar la autenticidad de certificados Ferreyros mediante un **código QR** impreso en el certificado físico.
 
-- El QR contiene un enlace del tipo `https://<sitio>/#t=<datos-firmados>.<firma>`.
-- La firma es **ECDSA P-256**: la clave privada solo existe en el equipo que emite los QR; el sitio publica únicamente la clave pública (`js/public-key.js`).
-- Si alguien ingresa la dirección del sitio manualmente, solo ve "Acceso restringido".
-- Si alguien altera un dato del enlace, la firma deja de coincidir y el sitio muestra "No válido".
-- Los datos del certificado viajan dentro del QR firmado; el repositorio público **no** contiene datos personales.
+- El QR abre una URL corta: `https://<sitio>/certificaciones/BT3WVAPC`.
+- El código tiene **8 caracteres** (letras mayúsculas y dígitos, sin 0/O/1/I para evitar confusiones). Hay ~1 billón de combinaciones, por lo que no es práctico adivinarlo.
+- `https://<sitio>/` y `https://<sitio>/certificaciones/` redirigen a https://www.ferreyros.com.pe/.
+- Cada certificado se publica **cifrado** (AES-256-GCM) en `registros/`. El nombre del archivo y la clave se derivan del código con PBKDF2, así que sin el código el repositorio solo contiene archivos ilegibles.
 
 ## Estructura
 
 | Ruta | Descripción |
 |---|---|
-| `index.html`, `css/`, `js/`, `assets/` | Sitio publicado |
-| `js/public-key.js` | Clave pública (se genera con `npm run claves`) |
-| `revocados.json` | Lista de códigos anulados, por ejemplo `["FRY-CAP-2026-0142"]` |
-| `tools/emitir.js` | Genera claves y QR firmados |
-| `tools/servidor.js` | Servidor local de pruebas |
-| `datos/certificados.ejemplo.json` | Formato de datos de ejemplo |
+| `index.html`, `certificaciones/index.html` | Redirigen a ferreyros.com.pe |
+| `404.html` | Página de validación (GitHub Pages la sirve para `/certificaciones/<CODIGO>`) |
+| `css/`, `js/`, `assets/` | Estilos, scripts, logo y carrusel |
+| `registros/` | Registros cifrados (se publican) |
+| `revocados.json` | Certificados anulados, por ejemplo `["FRY-CAP-2026-0142"]` |
+| `tools/emitir.js` | Genera códigos, registros cifrados y QR |
+| `tools/servidor.js` | Servidor local que imita a GitHub Pages |
+| `datos/certificados.ejemplo.json` | Formato de datos |
 | `.claves/`, `datos/certificados.json`, `salida/` | **No se suben** (ver `.gitignore`) |
 
 ## Requisitos
 
 - Node.js 18 o superior
-- Git (en Windows: `winget install --id Git.Git -e`, luego cierre y abra la terminal) y una cuenta de GitHub
+- Git (en Windows: `winget install --id Git.Git -e`) y una cuenta de GitHub
 
-## 1. Preparar en el equipo local
+## 1. Preparar (una sola vez)
 
 ```powershell
 npm install
-npm run claves
+npm run secreto
 ```
 
-`npm run claves` crea `.claves/privada.pem` (guárdela en un lugar seguro; si se pierde, hay que reemitir todos los QR) y actualiza `js/public-key.js`.
+`.claves/secreto.key` determina los códigos de 8 caracteres: el mismo certificado siempre obtiene el mismo código. **Respáldelo.** Si se pierde o se cambia, los códigos de los certificados ya impresos ya no se podrán regenerar.
 
-## 2. Subir el sitio a GitHub
-
-1. En GitHub, cree un repositorio nuevo, por ejemplo `validacion-certificados` (sin README).
-2. En la carpeta del sitio:
-
-   ```powershell
-   git init
-   git add .
-   git status    # verifique que NO aparezcan .claves/, salida/ ni datos/certificados.json
-   git commit -m "Sitio de validación de certificados Ferreyros"
-   git branch -M main
-   git remote add origin https://github.com/<usuario>/validacion-certificados.git
-   git push -u origin main
-   ```
-
-3. En GitHub: **Settings → Pages → Build and deployment**
-   - Source: **Deploy from a branch**
-   - Branch: **main** / **(root)** → **Save**
-4. Espere 1–2 minutos. La URL será `https://<usuario>.github.io/validacion-certificados/`.
-5. Abra esa URL: debe mostrar "Acceso restringido".
-
-> GitHub Pages en repositorios privados requiere plan de pago (Pro/Team/Enterprise). Con plan gratuito el repositorio debe ser público; por eso el repositorio no contiene datos personales ni la clave privada.
-
-## 3. Generar QR de prueba apuntando a GitHub Pages
+## 2. Emitir certificados
 
 ```powershell
-node tools/emitir.js qr --base https://<usuario>.github.io/validacion-certificados/
+# Todos los certificados del archivo de datos
+node tools/emitir.js qr --base https://evillanuevaj.github.io/academicoii/
+
+# Solo uno
+node tools/emitir.js qr --base https://evillanuevaj.github.io/academicoii/ --solo FRY-CAP-2026-0142
+
+# Solo los primeros N
+node tools/emitir.js qr --base https://evillanuevaj.github.io/academicoii/ --limite 1
 ```
 
-Genera en `salida/`:
+Genera:
 
-- `qr/<codigo>.png` y `qr/<codigo>.svg`: imágenes para incrustar en el certificado físico.
-- `enlaces.csv`: código, participante y URL firmada.
-- `certificados.html`: hoja imprimible de prueba con los QR.
+- `registros/<id>.json`: registro cifrado, **debe subirse a GitHub**.
+- `salida/qr/<codigo>.png` y `.svg`: QR para el certificado físico.
+- `salida/enlaces.csv`: N.º de certificado, participante, código de verificación y URL.
+- `salida/certificados.html`: hoja imprimible de prueba.
 
-Para usar datos reales, copie `datos/certificados.ejemplo.json` a `datos/certificados.json` (ignorado por Git) y edítelo. También puede indicar otro archivo con `--datos ruta.json`. Para que los enlaces venzan, agregue `--dias 730`.
+Use `datos/certificados.json` (ignorado por Git) para datos reales, o indique otro archivo con `--datos ruta.json`. Con `--dias 730` la verificación vence a los 2 años.
 
-## 4. Probar con el celular
+### Formato de datos
 
-1. Abra `salida/certificados.html` en la PC (doble clic o `npm start` → `http://127.0.0.1:8787/salida/certificados.html`).
-2. Escanee un QR con la cámara del celular → debe abrir GitHub Pages con **Certificado válido**.
-3. Abra `https://<usuario>.github.io/validacion-certificados/` escribiendo la dirección → **Acceso restringido**.
-4. Cambie cualquier carácter del enlace del QR → **No válido**.
+Cada certificado lleva `apellidos` y `nombres` por separado; el sitio muestra **"APELLIDOS, Nombres"** (por ejemplo `TONGO VILLANUEVA, Juan Luis`). También se acepta `"participante": "Apellidos, Nombres"` con coma. Fechas en `dd/mm/aaaa`, documento como `DNI ****1234`.
 
-## Pruebas locales (sin GitHub)
+Antes de emitir, el script valida todos los datos y **no genera nada si hay errores**: campos faltantes, códigos duplicados o con formato distinto a `FRY-XXX-AAAA-NNNN`, fechas inválidas o fuera de orden, horas no numéricas, caracteres no válidos en nombres y palabras sin tilde en tipo/programa/línea/sede. Los nombres que suelen llevar tilde (Jesús, Vásquez…) solo generan un aviso, porque deben coincidir con el DNI. Para revisar sin generar:
 
 ```powershell
-node tools/emitir.js qr --base http://127.0.0.1:8787/
+node tools/emitir.js validar
+```
+
+## 3. Publicar en GitHub Pages
+
+```powershell
+git add .
+git status    # NO deben aparecer .claves/, salida/ ni datos/certificados.json
+git commit -m "Publicar certificados"
+git push
+```
+
+Configuración inicial: **Settings → Pages → Deploy from a branch → main / (root)**.
+
+## 4. Probar
+
+| URL | Resultado |
+|---|---|
+| `https://<sitio>/certificaciones/<CODIGO>` | Certificado válido |
+| `https://<sitio>/certificaciones/ZZZZZZZZ` | Certificado no encontrado |
+| `https://<sitio>/` o `/certificaciones/` | Redirige a ferreyros.com.pe |
+
+Pruebas locales:
+
+```powershell
 npm start
 ```
 
-Abra `http://127.0.0.1:8787/salida/certificados.html` y haga clic en un QR. La verificación usa Web Crypto, que el navegador solo habilita en HTTPS o `127.0.0.1`/`localhost`; por eso el celular debe probarse contra GitHub Pages y no contra la IP de la PC.
+Abra `http://127.0.0.1:8787/certificaciones/<CODIGO>` o `http://127.0.0.1:8787/salida/certificados.html`.
 
 ## Revocar un certificado
 
-Agregue el código a `revocados.json`, haga commit y push. El sitio mostrará "Certificado revocado" para ese QR.
+Agregue el N.º de certificado a `revocados.json`, haga commit y push.
 
 ## Dominio propio
 
-Para usar `validacion.ferreyros.com.pe`, configure **Settings → Pages → Custom domain** y un registro DNS `CNAME` hacia `<usuario>.github.io`. Luego reemita los QR con `--base https://validacion.ferreyros.com.pe/`.
+Para usar `https://www.dominio.com.pe/certificaciones/<CODIGO>`, configure **Settings → Pages → Custom domain** con el DNS correspondiente y reemita los QR con `--base https://www.dominio.com.pe/`. Los códigos y registros no cambian; solo cambia la URL dentro del QR.

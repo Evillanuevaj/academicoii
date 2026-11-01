@@ -1,9 +1,14 @@
 (function () {
   "use strict";
 
-  // Campos del payload firmado (claves cortas para que el QR sea más pequeño).
+  // Debe coincidir con tools/emitir.js.
+  var CODE_PATTERN = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{8}$/;
+  var KDF_SALT = "ferreyros-certificaciones-v1";
+  var KDF_ITERATIONS = 150000;
+
+  // Campos del registro (claves cortas).
   var FIELDS = [
-    ["p", "Participante", true],
+    ["p", "Apellidos y nombres", true],
     ["d", "Documento", false],
     ["l", "Línea", false],
     ["s", "Sede", false],
@@ -18,113 +23,121 @@
   var result = document.getElementById("result");
   document.getElementById("year").textContent = String(new Date().getFullYear());
 
-  var token = readToken();
-  if (!token) {
+  var code = readCode();
+  if (!code) {
     showGate(
-      "Escanee el código QR del certificado",
-      "Esta verificación solo se abre desde el código QR impreso en el certificado físico. Los datos no se muestran ingresando la dirección manualmente.",
-      false
+      "Código no válido",
+      "La dirección no corresponde a un certificado emitido por Ferreyros. Escanee nuevamente el código QR del documento físico.",
+      true
     );
     return;
   }
 
-  verify(token)
-    .then(function (payload) {
-      return isRevoked(payload.c).then(function (revoked) {
-        if (revoked) {
-          showGate("Certificado revocado", "Ferreyros anuló este certificado. No debe considerarse válido.", true);
-          return;
-        }
-        showCertificate(payload);
-      });
-    })
-    .catch(function (error) {
-      if (error && error.message === "expired") {
-        showGate("Enlace vencido", "El código QR de este certificado venció. Solicite a Ferreyros una reemisión.", true);
-        return;
-      }
-      if (error && error.message === "unsupported") {
+  lookup(code)
+    .then(function (record) {
+      if (!record) {
         showGate(
-          "Navegador no compatible",
-          "Abra el enlace desde un navegador actualizado y por HTTPS para verificar la firma digital.",
+          "Certificado no encontrado",
+          "El código " + code + " no corresponde a un certificado emitido por Ferreyros. Verifique que escaneó el QR del documento físico.",
           true
         );
         return;
       }
-      showGate(
-        "No se pudo validar el certificado",
-        "El enlace fue alterado o no corresponde a un certificado emitido por Ferreyros. Escanee nuevamente el QR del documento físico.",
-        true
-      );
+      if (typeof record.x === "number" && record.x < Math.floor(Date.now() / 1000)) {
+        showGate("Verificación vencida", "El periodo de verificación de este certificado venció. Solicite a Ferreyros una reemisión.", true);
+        return;
+      }
+      return isRevoked(record.c).then(function (revoked) {
+        if (revoked) {
+          showGate("Certificado revocado", "Ferreyros anuló este certificado. No debe considerarse válido.", true);
+          return;
+        }
+        showCertificate(code, record);
+      });
+    })
+    .catch(function (error) {
+      if (error && error.message === "unsupported") {
+        showGate(
+          "Navegador no compatible",
+          "Abra el enlace desde un navegador actualizado y por HTTPS para verificar el certificado.",
+          true
+        );
+        return;
+      }
+      showGate("No se pudo verificar", "Ocurrió un problema al consultar el certificado. Intente nuevamente en unos minutos.", true);
     });
 
-  function readToken() {
-    var hash = window.location.hash.replace(/^#/, "");
-    var fromHash = new URLSearchParams(hash).get("t");
-    if (fromHash) {
-      return fromHash;
+  function readCode() {
+    var match = window.location.pathname.match(/\/certificaciones\/([^/]+)\/?$/);
+    if (!match) {
+      return "";
     }
-    return new URLSearchParams(window.location.search).get("t") || "";
+    var value = decodeURIComponent(match[1]).toUpperCase().replace(/[-\s]/g, "");
+    return CODE_PATTERN.test(value) ? value : "";
   }
 
-  function verify(value) {
-    if (!window.crypto || !window.crypto.subtle || !window.CERT_PUBLIC_KEY) {
+  function lookup(value) {
+    if (!window.crypto || !window.crypto.subtle) {
       return Promise.reject(new Error("unsupported"));
     }
-    var parts = value.split(".");
-    if (parts.length !== 2 || !parts[0] || !parts[1]) {
-      return Promise.reject(new Error("invalid"));
-    }
+    var subtle = window.crypto.subtle;
+    var encoder = new TextEncoder();
+    var recordId;
 
-    var signature;
-    var payload;
-    try {
-      signature = b64urlToBytes(parts[1]);
-      payload = JSON.parse(new TextDecoder().decode(b64urlToBytes(parts[0])));
-    } catch (err) {
-      return Promise.reject(new Error("invalid"));
-    }
-
-    return window.crypto.subtle
-      .importKey("jwk", window.CERT_PUBLIC_KEY, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"])
-      .then(function (key) {
-        return window.crypto.subtle.verify(
-          { name: "ECDSA", hash: "SHA-256" },
-          key,
-          signature,
-          new TextEncoder().encode(parts[0])
+    return subtle
+      .importKey("raw", encoder.encode(value), "PBKDF2", false, ["deriveBits"])
+      .then(function (baseKey) {
+        return subtle.deriveBits(
+          { name: "PBKDF2", hash: "SHA-256", salt: encoder.encode(KDF_SALT), iterations: KDF_ITERATIONS },
+          baseKey,
+          384
         );
       })
-      .then(function (ok) {
-        if (!ok || !payload || typeof payload.c !== "string" || typeof payload.p !== "string") {
-          throw new Error("invalid");
-        }
-        if (typeof payload.x === "number" && payload.x < Math.floor(Date.now() / 1000)) {
-          throw new Error("expired");
-        }
-        return payload;
+      .then(function (bits) {
+        var bytes = new Uint8Array(bits);
+        recordId = toHex(bytes.slice(0, 16));
+        return subtle.importKey("raw", bytes.slice(16, 48), { name: "AES-GCM" }, false, ["decrypt"]);
+      })
+      .then(function (aesKey) {
+        return fetch("../registros/" + recordId + ".json", { cache: "no-store" }).then(function (response) {
+          if (response.status === 404) {
+            return null;
+          }
+          if (!response.ok) {
+            throw new Error("network");
+          }
+          return response.json().then(function (file) {
+            return subtle
+              .decrypt({ name: "AES-GCM", iv: b64ToBytes(file.iv) }, aesKey, b64ToBytes(file.ct))
+              .then(function (plain) {
+                return JSON.parse(new TextDecoder().decode(plain));
+              });
+          });
+        });
       });
   }
 
-  function isRevoked(code) {
-    return fetch("revocados.json", { cache: "no-store" })
+  function isRevoked(internalCode) {
+    return fetch("../revocados.json", { cache: "no-store" })
       .then(function (response) {
         return response.ok ? response.json() : [];
       })
       .then(function (list) {
-        return Array.isArray(list) && list.indexOf(code) !== -1;
+        return Array.isArray(list) && list.indexOf(internalCode) !== -1;
       })
       .catch(function () {
         return false;
       });
   }
 
-  function b64urlToBytes(text) {
-    var base64 = text.replace(/-/g, "+").replace(/_/g, "/");
-    while (base64.length % 4) {
-      base64 += "=";
-    }
-    var binary = atob(base64);
+  function toHex(bytes) {
+    return Array.prototype.map.call(bytes, function (b) {
+      return ("0" + b.toString(16)).slice(-2);
+    }).join("");
+  }
+
+  function b64ToBytes(text) {
+    var binary = atob(String(text).replace(/-/g, "+").replace(/_/g, "/"));
     var bytes = new Uint8Array(binary.length);
     for (var i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
@@ -144,20 +157,21 @@
     document.getElementById("gate-text").textContent = text;
   }
 
-  function showCertificate(payload) {
+  function showCertificate(value, record) {
     loading.hidden = true;
     gate.hidden = true;
     result.hidden = false;
 
-    document.getElementById("cert-type").textContent = payload.t || "Certificado";
-    document.getElementById("cert-title").textContent = payload.r || "";
-    document.getElementById("cert-code").textContent = payload.c;
+    document.getElementById("cert-type").textContent = record.t || "Certificado";
+    document.getElementById("cert-title").textContent = record.r || "";
+    document.getElementById("cert-qr").textContent = value;
+    document.getElementById("cert-code").textContent = record.c;
 
     var facts = document.getElementById("facts");
     facts.textContent = "";
     FIELDS.forEach(function (field) {
-      var value = payload[field[0]];
-      if (value === undefined || value === null || value === "") {
+      var data = record[field[0]];
+      if (data === undefined || data === null || data === "") {
         return;
       }
       var item = document.createElement("div");
@@ -167,7 +181,7 @@
       var dt = document.createElement("dt");
       dt.textContent = field[1];
       var dd = document.createElement("dd");
-      dd.textContent = String(value);
+      dd.textContent = String(data);
       item.appendChild(dt);
       item.appendChild(dd);
       facts.appendChild(item);

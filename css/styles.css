@@ -384,6 +384,7 @@ img {
 .card__code strong {
   color: var(--ink);
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .facts {

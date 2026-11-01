@@ -1,11 +1,12 @@
 [
   {
-    "codigo": "FRY-CAP-2026-0142",
+    "codigo": "FRY-CAP-2026-0001",
     "tipo": "Certificado de capacitación",
     "programa": "Operación segura de excavadora hidráulica",
-    "participante": "Luis Villanueva",
-    "documento": "DNI ****5678",
-    "linea": "Maquinaria pesada Cat",
+    "apellidos": "Ejemplo Uno",
+    "nombres": "Participante",
+    "documento": "DNI ****0000",
+    "linea": "Maquinaria pesada",
     "sede": "Centro de capacitación Ferreyros - Lima",
     "inicio": "16/02/2026",
     "fin": "21/02/2026",
@@ -13,11 +14,12 @@
     "emision": "28/02/2026"
   },
   {
-    "codigo": "FRY-SRV-2026-0088",
+    "codigo": "FRY-SRV-2026-0002",
     "tipo": "Certificado de servicio técnico",
     "programa": "Mantenimiento de grupos electrógenos",
-    "participante": "Ana Quispe Ramos",
-    "documento": "DNI ****1234",
+    "apellidos": "Ejemplo Dos",
+    "nombres": "Participante",
+    "documento": "DNI ****0000",
     "linea": "Energía y grupos electrógenos",
     "sede": "Taller de servicio Ferreyros - Arequipa",
     "inicio": "03/03/2026",
