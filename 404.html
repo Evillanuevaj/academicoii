@@ -8,12 +8,15 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="referrer" content="no-referrer" />
   <script>
-    // Esta página atiende /<sitio>/certificaciones/<CODIGO>; cualquier otra ruta va a ferreyros.com.pe.
+    // Esta página atiende /<CODIGO> (8 caracteres); cualquier otra ruta va a ferreyros.com.pe.
+    // Los QR antiguos con /certificaciones/<CODIGO> se redirigen al formato nuevo.
     (function () {
+      var CODE = /\/[2-9A-HJ-NP-Za-hj-np-z]{8}$/;
       var path = window.location.pathname;
-      if (/\/certificaciones\/[^/]+\/$/.test(path)) {
-        window.location.replace(path.replace(/\/+$/, ""));
-      } else if (!/\/certificaciones\/[^/]+$/.test(path)) {
+      var clean = path.replace(/\/certificaciones\/([^/]+)\/?$/, "/$1").replace(/\/+$/, "");
+      if (clean !== path && CODE.test(clean)) {
+        window.location.replace(clean);
+      } else if (!CODE.test(path)) {
         window.location.replace("https://www.ferreyros.com.pe/");
       }
     })();
@@ -22,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
   <div class="topbar">
@@ -35,7 +38,7 @@
   <header class="site-header">
     <div class="wrap site-header__inner">
       <a class="brand" href="https://www.ferreyros.com.pe/" rel="noopener noreferrer" aria-label="Ferreyros, una empresa Ferreycorp">
-        <img src="../assets/img/logo.png" alt="Ferreyros CAT - Una empresa Ferreycorp" width="184" height="59" />
+        <img src="assets/img/logo.png" alt="Ferreyros CAT - Una empresa Ferreycorp" width="184" height="59" />
       </a>
       <nav class="nav" aria-label="Secciones Ferreyros">
         <a href="https://www.ferreyros.com.pe/equipos/" rel="noopener noreferrer">Equipos</a>
@@ -53,7 +56,7 @@
         <div class="carousel" id="carousel" aria-roledescription="carrusel" aria-label="Ferreyros">
           <div class="carousel__track">
             <figure class="slide is-active" aria-roledescription="diapositiva" aria-label="1 de 4">
-              <img src="../assets/img/slide-excavadora.jpg" alt="Excavadora Cat operando en mina a tajo abierto" width="760" height="472" />
+              <img src="assets/img/slide-excavadora.jpg" alt="Excavadora Cat operando en mina a tajo abierto" width="760" height="472" />
               <figcaption>
                 <span class="slide__tag">Equipos</span>
                 <strong>Maquinaria Cat para cada operación</strong>
@@ -61,7 +64,7 @@
               </figcaption>
             </figure>
             <figure class="slide" aria-roledescription="diapositiva" aria-label="2 de 4">
-              <img src="../assets/img/slide-motor.jpg" alt="Motor Cat" width="760" height="472" loading="lazy" />
+              <img src="assets/img/slide-motor.jpg" alt="Motor Cat" width="760" height="472" loading="lazy" />
               <figcaption>
                 <span class="slide__tag">Energía</span>
                 <strong>Motores y grupos electrógenos</strong>
@@ -69,7 +72,7 @@
               </figcaption>
             </figure>
             <figure class="slide" aria-roledescription="diapositiva" aria-label="3 de 4">
-              <img src="../assets/img/slide-repuestos.jpg" alt="Repuestos Cat llegando a todo el país" width="760" height="472" loading="lazy" />
+              <img src="assets/img/slide-repuestos.jpg" alt="Repuestos Cat llegando a todo el país" width="760" height="472" loading="lazy" />
               <figcaption>
                 <span class="slide__tag">Servicios</span>
                 <strong>Soporte en todo el país</strong>
@@ -77,7 +80,7 @@
               </figcaption>
             </figure>
             <figure class="slide" aria-roledescription="diapositiva" aria-label="4 de 4">
-              <img src="../assets/img/slide-tecnologia.jpg" alt="Aplicación Cat Central con equipos Cat" width="760" height="472" loading="lazy" />
+              <img src="assets/img/slide-tecnologia.jpg" alt="Aplicación Cat Central con equipos Cat" width="760" height="472" loading="lazy" />
               <figcaption>
                 <span class="slide__tag">Tecnología</span>
                 <strong>Soluciones digitales Cat</strong>
@@ -112,7 +115,7 @@
             <p class="card__code">Código de verificación <strong id="cert-qr"></strong> · N.º <strong id="cert-code"></strong></p>
             <dl class="facts" id="facts"></dl>
             <footer class="card__seal">
-              <img src="../assets/seal.svg" alt="" width="52" height="62" />
+              <img src="assets/seal.svg" alt="" width="52" height="62" />
               <div>
                 <strong>Registro verificado</strong>
                 <span>Emitido por Ferreyros S.A.</span>
@@ -152,12 +155,12 @@
 
   <footer class="site-footer">
     <div class="wrap site-footer__inner">
-      <img src="../assets/img/logo.png" alt="Ferreyros" width="138" height="44" />
+      <img src="assets/img/logo.png" alt="Ferreyros" width="138" height="44" />
       <p>© <span id="year"></span> Ferreyros S.A. Una empresa Ferreycorp. Sitio de verificación de certificados.</p>
     </div>
   </footer>
 
-  <script src="../js/carousel.js"></script>
-  <script src="../js/script.js"></script>
+  <script src="js/carousel.js"></script>
+  <script src="js/script.js"></script>
 </body>
 </html>

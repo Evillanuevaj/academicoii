@@ -537,7 +537,7 @@ async function generate(args) {
     const { id, key } = deriveRecordKeys(code);
     fs.writeFileSync(path.join(RECORDS_DIR, id + ".json"), JSON.stringify(encryptRecord(key, payload)) + "\n");
 
-    const url = base + "certificaciones/" + code;
+    const url = base + code;
     const file = safeFileName(payload.c);
     const options = { errorCorrectionLevel: "M", margin: 2, color: { dark: "#111111", light: "#ffffff" } };
     await QRCode.toFile(path.join(qrDir, file + ".png"), url, Object.assign({ width: 600 }, options));

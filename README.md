@@ -2,9 +2,9 @@
 
 Sitio estático (HTML/CSS/JS) para validar la autenticidad de certificados Ferreyros mediante un **código QR** impreso en el certificado físico.
 
-- El QR abre una URL corta: `https://<sitio>/certificaciones/BT3WVAPC`.
+- El QR abre una URL corta: `https://<sitio>/BT3WVAPC`.
 - El código tiene **8 caracteres** (letras mayúsculas y dígitos, sin 0/O/1/I para evitar confusiones). Hay ~1 billón de combinaciones, por lo que no es práctico adivinarlo.
-- `https://<sitio>/` y `https://<sitio>/certificaciones/` redirigen a https://www.ferreyros.com.pe/.
+- `https://<sitio>/` y cualquier ruta que no sea un código redirigen a https://www.ferreyros.com.pe/. Los QR antiguos con `/certificaciones/<CODIGO>` se redirigen a `/<CODIGO>`.
 - Cada certificado se publica **cifrado** (AES-256-GCM) en `registros/`. El nombre del archivo y la clave se derivan del código con PBKDF2, así que sin el código el repositorio solo contiene archivos ilegibles.
 
 ## Estructura
@@ -12,7 +12,7 @@ Sitio estático (HTML/CSS/JS) para validar la autenticidad de certificados Ferre
 | Ruta | Descripción |
 |---|---|
 | `index.html`, `certificaciones/index.html` | Redirigen a ferreyros.com.pe |
-| `404.html` | Página de validación (GitHub Pages la sirve para `/certificaciones/<CODIGO>`) |
+| `404.html` | Página de validación (GitHub Pages la sirve para `/<CODIGO>`) |
 | `css/`, `js/`, `assets/` | Estilos, scripts, logo y carrusel |
 | `registros/` | Registros cifrados (se publican) |
 | `revocados.json` | Certificados anulados, por ejemplo `["FRY-CAP-2026-0142"]` |
@@ -39,13 +39,13 @@ npm run secreto
 
 ```powershell
 # Todos los certificados del archivo de datos
-node tools/emitir.js qr --base https://evillanuevaj.github.io/academicoii/
+node tools/emitir.js qr --base https://entrenamientoferreyros.com/
 
 # Solo uno
-node tools/emitir.js qr --base https://evillanuevaj.github.io/academicoii/ --solo FRY-CAP-2026-0142
+node tools/emitir.js qr --base https://entrenamientoferreyros.com/ --solo FRY-CAP-2026-0142
 
 # Solo los primeros N
-node tools/emitir.js qr --base https://evillanuevaj.github.io/academicoii/ --limite 1
+node tools/emitir.js qr --base https://entrenamientoferreyros.com/ --limite 1
 ```
 
 Genera:
@@ -82,9 +82,9 @@ Configuración inicial: **Settings → Pages → Deploy from a branch → main /
 
 | URL | Resultado |
 |---|---|
-| `https://<sitio>/certificaciones/<CODIGO>` | Certificado válido |
-| `https://<sitio>/certificaciones/ZZZZZZZZ` | Certificado no encontrado |
-| `https://<sitio>/` o `/certificaciones/` | Redirige a ferreyros.com.pe |
+| `https://<sitio>/<CODIGO>` | Certificado válido |
+| `https://<sitio>/ZZZZZZZZ` | Certificado no encontrado |
+| `https://<sitio>/` u otra ruta | Redirige a ferreyros.com.pe |
 
 Pruebas locales:
 
@@ -92,7 +92,7 @@ Pruebas locales:
 npm start
 ```
 
-Abra `http://127.0.0.1:8787/certificaciones/<CODIGO>` o `http://127.0.0.1:8787/salida/certificados.html`.
+Abra `http://127.0.0.1:8787/<CODIGO>` o `http://127.0.0.1:8787/salida/certificados.html`.
 
 ## Revocar un certificado
 
@@ -100,4 +100,4 @@ Agregue el N.º de certificado a `revocados.json`, haga commit y push.
 
 ## Dominio propio
 
-Para usar `https://www.dominio.com.pe/certificaciones/<CODIGO>`, configure **Settings → Pages → Custom domain** con el DNS correspondiente y reemita los QR con `--base https://www.dominio.com.pe/`. Los códigos y registros no cambian; solo cambia la URL dentro del QR.
+Para usar `https://www.dominio.com.pe/<CODIGO>`, configure **Settings → Pages → Custom domain** con el DNS correspondiente y reemita los QR con `--base https://www.dominio.com.pe/`. Los códigos y registros no cambian; solo cambia la URL dentro del QR.

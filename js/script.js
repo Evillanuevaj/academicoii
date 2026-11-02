@@ -68,7 +68,7 @@
     });
 
   function readCode() {
-    var match = window.location.pathname.match(/\/certificaciones\/([^/]+)\/?$/);
+    var match = window.location.pathname.match(/\/([^/]+)\/?$/);
     if (!match) {
       return "";
     }
@@ -99,7 +99,7 @@
         return subtle.importKey("raw", bytes.slice(16, 48), { name: "AES-GCM" }, false, ["decrypt"]);
       })
       .then(function (aesKey) {
-        return fetch("../registros/" + recordId + ".json", { cache: "no-store" }).then(function (response) {
+        return fetch("registros/" + recordId + ".json", { cache: "no-store" }).then(function (response) {
           if (response.status === 404) {
             return null;
           }
@@ -118,7 +118,7 @@
   }
 
   function isRevoked(internalCode) {
-    return fetch("../revocados.json", { cache: "no-store" })
+    return fetch("revocados.json", { cache: "no-store" })
       .then(function (response) {
         return response.ok ? response.json() : [];
       })
